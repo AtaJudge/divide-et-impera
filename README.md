@@ -1,5 +1,7 @@
 # divide-et-impera
 
+<img src="assets/icon.svg" alt="divide-et-impera icon" width="128">
+
 A Claude Code skill for large tasks. It splits the work into parts and gives each part to the cheapest model that can do it safely. The orchestrating model writes the critical parts itself, verifies what the other models return, and reports to you.
 
 ## How it works
@@ -51,7 +53,7 @@ Claude Code adds the plugin's name as a prefix to everything it installs:
 - The command is `/divide-et-impera:divide-et-impera`.
 - The agents are `divide-et-impera:dei-scout`, `divide-et-impera:dei-builder` and `divide-et-impera:dei-deputy`. The skill accepts both these names and the short ones.
 
-The plugin has no version number, so every new commit counts as an update. Run `claude plugin update`, or use the `/plugin` menu, to install updates.
+The plugin is versioned (current: 1.0.0), so installs stay on a release until a new version is published. Run `claude plugin update`, or use the `/plugin` menu, to install updates.
 
 ### Manual: personal (all projects)
 
@@ -90,3 +92,7 @@ The skill runs only when you invoke it yourself. It sets `disable-model-invocati
   | Sonnet 5.5 | $2 | $10 |
   | Opus 5.5 | $4 | $20 |
   | Fable 5.2 | $8 | $40 |
+
+## License
+
+MIT. See [LICENSE](LICENSE).
