@@ -50,7 +50,7 @@ The same three-part task was run headless with the plugin loaded through `--plug
 What the runs showed:
 - **Every run** put each part on the intended tier, pinned the right model for each worker, and decided correctly not to use a deputy.
 - **Every run** marked a docs citation it could not load as unverified, instead of presenting it as fact.
-- **In the `balanced` run**, the Opus worker spotted a flaw in Fable's own spec: a trailing slash (`link/`) let a symlinked directory get past the check. Fable reviewed the report, fixed the code and added tests for it.
+- **In the `balanced` run**, Opus wrote the critical code from Fable's spec: 112 lines of code and 190 lines of tests. Opus also found a flaw in the spec: a trailing slash (`link/`) let a symlinked directory get past the check. It reported the flaw without changing the spec, as its brief said. Fable then fixed the code itself, in three small edits (about 30 lines), and added 23 lines of tests. So the final critical code is Opus's implementation with Fable's fix applied.
 
 These are single runs with one task each, so read the costs as rough figures.
 

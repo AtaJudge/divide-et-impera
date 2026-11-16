@@ -45,7 +45,7 @@ Assign roles by what the work needs, not by model name. The orchestrator is what
 | `dei-deputy` (Opus) | Optional middle manager for one large workstream (see *Deputy layer*) | Subagent |
 
 Adjust by session model:
-- **Fable**: by default, write critical work yourself. In **balanced** mode, write the spec, have `opus` write the critical implementation, then review it line by line before accepting it. Balanced mode saves money only when the critical implementation is large. For small critical pieces, the extra worker's context setup plus your review costs more than writing the code yourself. In that case, say so and write it yourself even in balanced mode.
+- **Fable**: by default, write critical work yourself. In **balanced** mode, write the spec, have `opus` write the critical implementation, then review it line by line before accepting it. Balanced mode saves money only when the critical implementation is large. For small critical pieces, the extra worker's context setup plus your review costs more than writing the code yourself. In that case, say so and write it yourself even in balanced mode. When your review finds problems, fix small ones yourself, because sending them back costs more than the fix. Send larger rework back to `opus` with a corrected spec. Either way, the report must say which parts of the critical code you wrote and which parts Opus wrote.
 - **Opus**: write critical work yourself.
 - **Sonnet or Haiku**: you are below the bar for critical work. Hand it to an `opus` subagent (general-purpose with model `opus`) with a complete spec, and review what comes back.
 
