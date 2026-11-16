@@ -1,0 +1,14 @@
+{
+  "name": "divide-et-impera",
+  "description": "The divide-et-impera skill: criticality-based task splitting across Claude models.",
+  "owner": {
+    "name": "AtaJudge"
+  },
+  "plugins": [
+    {
+      "name": "divide-et-impera",
+      "source": "./",
+      "description": "Split large tasks across Haiku, Sonnet and Opus by criticality."
+    }
+  ]
+}

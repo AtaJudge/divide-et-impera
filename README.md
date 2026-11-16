@@ -32,7 +32,28 @@ When in doubt, the work counts as critical. To mark extra areas as critical for 
 
 ## Installation
 
-### Personal (all projects)
+### As a plugin (recommended)
+
+In Claude Code 2.1.275 or later, run:
+
+```
+/plugin install divide-et-impera --marketplace AtaJudge/divide-et-impera
+```
+
+On older versions, add the marketplace first, then install:
+
+```
+/plugin marketplace add AtaJudge/divide-et-impera
+/plugin install divide-et-impera@divide-et-impera
+```
+
+Claude Code adds the plugin's name as a prefix to everything it installs:
+- The command is `/divide-et-impera:divide-et-impera`.
+- The agents are `divide-et-impera:dei-scout`, `divide-et-impera:dei-builder` and `divide-et-impera:dei-deputy`. The skill accepts both these names and the short ones.
+
+The plugin has no version number, so every new commit counts as an update. Run `claude plugin update`, or use the `/plugin` menu, to install updates.
+
+### Manual: personal (all projects)
 
 ```bash
 git clone https://github.com/AtaJudge/divide-et-impera.git
@@ -41,7 +62,7 @@ cp -r divide-et-impera/skills/divide-et-impera ~/.claude/skills/
 cp divide-et-impera/agents/*.md ~/.claude/agents/
 ```
 
-### Single project
+### Manual: single project
 
 Copy the same files into the project's `.claude/skills/` and `.claude/agents/` folders and commit them. Use this method for cloud sessions (claude.ai/code).
 
@@ -51,6 +72,8 @@ Copy the same files into the project's `.claude/skills/` and `.claude/agents/` f
 /divide-et-impera <task>
 /divide-et-impera balanced <task>     # lower-cost mode for Fable sessions
 ```
+
+If you installed it as a plugin, the command is `/divide-et-impera:divide-et-impera` instead.
 
 The skill runs only when you invoke it yourself. It sets `disable-model-invocation: true`, so Claude cannot start it on its own and run up subagent costs you didn't ask for.
 

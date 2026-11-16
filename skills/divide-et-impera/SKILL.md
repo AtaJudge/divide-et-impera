@@ -49,6 +49,14 @@ Adjust by session model:
 - **Opus**: write critical work yourself.
 - **Sonnet or Haiku**: you are below the bar for critical work. Hand it to an `opus` subagent (general-purpose with model `opus`) with a complete spec, and review what comes back.
 
+## Agent names
+
+The worker agents load under different names depending on how they were installed:
+- **Copied** into `~/.claude/agents/` or `.claude/agents/`: `dei-scout`, `dei-builder`, `dei-deputy`.
+- **Installed as a plugin**: `divide-et-impera:dei-scout`, `divide-et-impera:dei-builder`, `divide-et-impera:dei-deputy`.
+
+Use whichever form appears in your list of available agents. This document uses the short names. If neither form is available, tell the user the agents are not installed, and do not fall back silently to the built-in agents (see the next section).
+
 ## Model selection pitfall
 
 A nested subagent with no explicit model runs on its **parent's** model. The same applies to the built-in Explore, Plan and general-purpose agents. A deputy running on Opus that starts a general-purpose agent gets another Opus, at many times the cost of a Haiku. Therefore:

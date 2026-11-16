@@ -1,0 +1,6 @@
+{
+  "name": "divide-et-impera",
+  "description": "Split large tasks across Haiku, Sonnet and Opus by criticality; the orchestrator writes critical work itself and verifies the rest.",
+  "author": { "name": "AtaJudge" },
+  "repository": "https://github.com/AtaJudge/divide-et-impera"
+}
