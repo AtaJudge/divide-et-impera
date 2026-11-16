@@ -53,6 +53,7 @@ Every scenario was run headless (`claude -p`), with the plugin loaded through `-
 | 4 | Sonnet 5.5 | Escalated to an Opus subagent | Sonnet builder, Haiku scout | 29/29 | $0.58 | ✅ |
 | 5 | Haiku 5.5 | Escalated to an Opus subagent | Sonnet builder; Haiku did the lookup itself | 30/30 | $0.41 | ✅ |
 | 6 | Opus 5.5, `balanced` | A second Opus subagent | Sonnet builder, Haiku scout | 32/32 | $1.14 | ⚠️ fixed |
+| 6b | Opus 5.5, `balanced`, after the fix | Opus itself; said `balanced` is for Fable only | Sonnet builder, Haiku scout | 23/23 | $0.57 | ✅ |
 
 ### Installation and configuration
 
@@ -71,6 +72,7 @@ Every scenario was run headless (`claude -p`), with the plugin loaded through `-
 | 12 | Fable `balanced`, with a gap planted in the first spec | The gap goes back to Opus | Two rounds with the same Opus worker; Fable wrote no code; 20/20 tests | $1.24 | ✅ |
 | 13 | Deputy forced, default environment | Deputy starts its own workers | The deputy had no Agent tool at runtime, so it stopped and reported this without working around it | $0.68 | ⚠️ see below |
 | 13b | Same, with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` | Deputy starts its own workers | Orchestrator → Opus deputy → two Sonnet builders; 39/39 tests | $0.84 | ✅ |
+| 13c | Default environment, after the fix | Fall back to the flat structure | The deputy reported it had no Agent tool. The orchestrator started five builders itself and told the user how to turn nesting on; 35/35 tests | $0.90 | ✅ |
 
 ### What the tests changed
 
