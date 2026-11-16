@@ -28,11 +28,11 @@ When in doubt, the work counts as critical. To mark extra areas as critical for 
 
 ### Behavior by session model
 
-- **Fable** writes critical work itself. In `balanced` mode, Fable writes the spec, Opus writes the implementation, and Fable reviews it line by line.
+- **Fable** writes critical work itself. In `balanced` mode Fable writes no code at all. It writes specs and reviews the code line by line. Opus writes the critical code, and any fix Fable asks for goes back to the worker that wrote the code.
 - **Opus** writes critical work itself.
 - **Sonnet or Haiku** hands critical work to an Opus subagent along with a spec, then reviews the result.
 
-`balanced` mode saves money only when the critical part is large. For a small critical part, it costs more than default mode (see the test results below).
+When the critical parts are small, `balanced` mode can cost more than default mode, because every fix is a round trip to a worker. See the test results below.
 
 ## Test results
 
@@ -45,12 +45,17 @@ The same three-part task was run headless with the plugin loaded through `--plug
 |---|---|---|---|---|---|
 | Opus 5.5 | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus itself | 22 / 22 pass | $0.59 |
 | Fable 5.2 | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Fable itself | 33 / 33 pass | $1.28 |
-| Fable 5.2, `balanced` | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus to Fable's spec, reviewed by Fable | 27 / 27 pass | $1.80 |
+| Fable 5.2, `balanced` | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus, to Fable's spec; Fable reviewed it | 33 / 33 pass | $1.66 |
 
 What the runs showed:
 - **Every run** put each part on the intended tier, pinned the right model for each worker, and decided correctly not to use a deputy.
 - **Every run** marked a docs citation it could not load as unverified, instead of presenting it as fact.
-- **In the `balanced` run**, Opus wrote the critical code from Fable's spec: 112 lines of code and 190 lines of tests. Opus also found a flaw in the spec: a trailing slash (`link/`) let a symlinked directory get past the check. It reported the flaw without changing the spec, as its brief said. Fable then fixed the code itself, in three small edits (about 30 lines), and added 23 lines of tests. So the final critical code is Opus's implementation with Fable's fix applied.
+- **In the `balanced` run**, Fable wrote no code. From the session log:
+  - Sonnet wrote every line of the CLI and its tests.
+  - Opus wrote every line of the deletion code and its tests.
+  - Fable wrote specs, read all the code, and ran the tests and the CLI to check them.
+  - The only file Fable wrote was `NOTES.md`, which holds the prose answer to the docs question.
+  - Fable's review found nothing to send back, so this run did not exercise the fix round trip.
 
 These are single runs with one task each, so read the costs as rough figures.
 
