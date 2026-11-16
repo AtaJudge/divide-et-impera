@@ -32,6 +32,28 @@ When in doubt, the work counts as critical. To mark extra areas as critical for 
 - **Opus** writes critical work itself.
 - **Sonnet or Haiku** hands critical work to an Opus subagent along with a spec, then reviews the result.
 
+`balanced` mode saves money only when the critical part is large. For a small critical part, it costs more than default mode (see the test results below).
+
+## Test results
+
+The same three-part task was run headless with the plugin loaded through `--plugin-dir`:
+- a word-frequency CLI with tests (non-critical);
+- a version lookup in the Python docs (simple);
+- a function that deletes old files (critical: irreversible, and a security boundary).
+
+| Orchestrator | CLI + tests | Docs lookup | File deletion (critical) | Tests | Cost |
+|---|---|---|---|---|---|
+| Opus 5.5 | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus itself | 22 / 22 pass | $0.59 |
+| Fable 5.2 | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Fable itself | 33 / 33 pass | $1.28 |
+| Fable 5.2, `balanced` | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus to Fable's spec, reviewed by Fable | 27 / 27 pass | $1.80 |
+
+What the runs showed:
+- **Every run** put each part on the intended tier, pinned the right model for each worker, and decided correctly not to use a deputy.
+- **Every run** marked a docs citation it could not load as unverified, instead of presenting it as fact.
+- **In the `balanced` run**, the Opus worker spotted a flaw in Fable's own spec: a trailing slash (`link/`) let a symlinked directory get past the check. Fable reviewed the report, fixed the code and added tests for it.
+
+These are single runs with one task each, so read the costs as rough figures.
+
 ## Installation
 
 ### As a plugin (recommended)
