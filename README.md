@@ -36,28 +36,51 @@ When the critical parts are small, `balanced` mode can cost more than default mo
 
 ## Test results
 
-The same three-part task was run headless with the plugin loaded through `--plugin-dir`:
+Every scenario was run headless (`claude -p`), with the plugin loaded through `--plugin-dir` unless noted otherwise. Who did what comes from each session's log, and the generated tests were re-run after each session. Each scenario ran once, so read the costs as rough figures.
+
+**Standard task**, used unless noted. It has three parts:
 - a word-frequency CLI with tests (non-critical);
-- a version lookup in the Python docs (simple);
+- a Python docs version lookup (simple);
 - a function that deletes old files (critical: irreversible, and a security boundary).
 
-| Orchestrator | CLI + tests | Docs lookup | File deletion (critical) | Tests | Cost |
+### Orchestrator models and modes
+
+| # | Scenario | Who did the critical part | Other parts | Tests | Cost | Result |
+|---|---|---|---|---|---|---|
+| 1 | Opus 5.5 | Opus itself | Sonnet builder, Haiku scout | 22/22 | $0.59 | ✅ |
+| 2 | Fable 5.2 | Fable itself | Sonnet builder, Haiku scout | 33/33 | $1.28 | ✅ |
+| 3 | Fable 5.2, `balanced` | Opus (Fable wrote no code) | Sonnet builder, Haiku scout | 33/33 | $1.66 | ✅ |
+| 4 | Sonnet 5.5 | Escalated to an Opus subagent | Sonnet builder, Haiku scout | 29/29 | $0.58 | ✅ |
+| 5 | Haiku 5.5 | Escalated to an Opus subagent | Sonnet builder; Haiku did the lookup itself | 30/30 | $0.41 | ✅ |
+| 6 | Opus 5.5, `balanced` | A second Opus subagent | Sonnet builder, Haiku scout | 32/32 | $1.14 | ⚠️ fixed |
+
+### Installation and configuration
+
+| # | Scenario | Expected | Observed | Cost | Result |
 |---|---|---|---|---|---|
-| Opus 5.5 | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus itself | 22 / 22 pass | $0.59 |
-| Fable 5.2 | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Fable itself | 33 / 33 pass | $1.28 |
-| Fable 5.2, `balanced` | `dei-builder` (Sonnet) | `dei-scout` (Haiku) | Opus, to Fable's spec; Fable reviewed it | 33 / 33 pass | $1.66 |
+| 7 | Manual copy (short agent names, `/divide-et-impera`) | Same as the plugin install | Found `dei-builder` and `dei-scout` by their short names; 24/24 tests | $0.64 | ✅ |
+| 8 | Skill installed without its agents | Say so; do not fall back to built-in agents | Reported the missing agents, did everything itself, and listed which tier each part would have gone to; 23/23 tests | $0.48 | ✅ |
+| 11 | `Critical in this project` in CLAUDE.md marks the CLI as critical | The orchestrator writes the CLI | Opus wrote the CLI and the deletion code itself; only the lookup went to the scout; 25/25 tests | $0.62 | ✅ |
 
-What the runs showed:
-- **Every run** put each part on the intended tier, pinned the right model for each worker, and decided correctly not to use a deputy.
-- **Every run** marked a docs citation it could not load as unverified, instead of presenting it as fact.
-- **In the `balanced` run**, Fable wrote no code. From the session log:
-  - Sonnet wrote every line of the CLI and its tests.
-  - Opus wrote every line of the deletion code and its tests.
-  - Fable wrote specs, read all the code, and ran the tests and the CLI to check them.
-  - The only file Fable wrote was `NOTES.md`, which holds the prose answer to the docs question.
-  - Fable's review found nothing to send back, so this run did not exercise the fix round trip.
+### Task shapes
 
-These are single runs with one task each, so read the costs as rough figures.
+| # | Scenario | Expected | Observed | Cost | Result |
+|---|---|---|---|---|---|
+| 9 | One-line edit | No subagents | No subagents; edited the file directly | $0.18 | ✅ |
+| 10 | Large task in two workstreams (Fable): 7 lookups and 5 modules | Delegate both; deputy only if worth it | One scout and two builders; no deputy, since the thresholds were not met; 42/42 tests | $1.36 | ✅ |
+| 12 | Fable `balanced`, with a gap planted in the first spec | The gap goes back to Opus | Two rounds with the same Opus worker; Fable wrote no code; 20/20 tests | $1.24 | ✅ |
+| 13 | Deputy forced, default environment | Deputy starts its own workers | The deputy had no Agent tool at runtime, so it stopped and reported this without working around it | $0.68 | ⚠️ see below |
+| 13b | Same, with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` | Deputy starts its own workers | Orchestrator → Opus deputy → two Sonnet builders; 39/39 tests | $0.84 | ✅ |
+
+### What the tests changed
+
+- **#6: `balanced` on Opus.** Opus handed the critical code to a second Opus, which cost about twice as much as #1 for the same result. `balanced` now applies to Fable only; other models ignore it and say so.
+- **#13: the deputy layer.** In the test environment, subagents did not get the Agent tool by default, although the Claude Code docs say three levels of nesting are allowed by default. The deputy layer worked once `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` was set to `2` (#13b). The skill now:
+  - has the deputy check for the Agent tool first and report back if it is missing;
+  - falls back to the flat structure;
+  - tells the user to set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` to turn the deputy layer on.
+- **In every run** with web research, the docs site was blocked by the test environment's network. Every run marked the citation as unverified instead of presenting it as fact.
+- **No worker in any run** went outside its brief or worked around a denied command.
 
 ## Installation
 
@@ -108,7 +131,9 @@ The skill runs only when you invoke it yourself. It sets `disable-model-invocati
 
 ## Known limits and notes
 
-- **Subagent nesting depth:** subagents can nest up to three layers deep by default; change this with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`. This skill uses at most two layers: orchestrator → deputy → worker.
+- **Deputy layer needs nesting:** if `dei-deputy` reports that it has no Agent tool, add `"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"` to the `env` block of your settings. Without it, the skill falls back to a flat structure.
+
+- **Subagent nesting depth:** this skill uses at most two layers: orchestrator → deputy → worker. The Claude Code docs say subagents can nest up to three layers by default, but in testing nesting was off until `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` was set (see above).
 - **Model inheritance:** a subagent with no explicit model runs on its parent's model. For that reason the skill only delegates to the `dei-*` agents, whose definitions set the model. Run `/tasks` to see which model each subagent is running on.
 - **`dei-scout` has Bash** so it can run small scripts. Its prompt tells it to stay read-only, but nothing at the tool level enforces this. For a hard limit, add `permissions.deny` rules in settings.
 - **Pricing**, per 1M input/output tokens at the time of writing:

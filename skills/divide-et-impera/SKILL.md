@@ -54,6 +54,7 @@ Adjust by session model:
   - Balanced mode can cost more than the default when critical pieces are small, because every fix is a round trip. If you expect that, mention it in the report; do not switch to writing code yourself.
 - **Opus**: write critical work yourself.
 - **Sonnet or Haiku**: you are below the bar for critical work. Hand it to an `opus` subagent (general-purpose with model `opus`) with a complete spec, and review what comes back.
+- **`balanced` on any model other than Fable**: ignore it, say so in one line, and use your model's default behavior above. In an Opus session, balanced mode would mean handing critical code from one Opus to another. A test run showed that costs about twice as much and gains nothing.
 
 ## Agent names
 
@@ -101,6 +102,10 @@ Do not add one when the parts are tightly coupled.
 **Break-even:** a deputy costs about half as much per token as Fable and the same as Opus. It pays off only when it saves you at least half of what it spends itself. Under an Opus orchestrator it rarely pays off.
 
 Deputies must pass critical items up verbatim with their evidence, and list corrections separately. Spot-check critical items yourself; do not trust a deputy's summary blindly.
+
+**Nesting may be turned off.** A deputy is useful only if it can start its own workers. In some environments, subagents do not get the Agent tool, even though their definition lists it. This happened in testing until `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` was set to `2`. If a deputy reports that it has no Agent tool:
+- go back to the flat structure and start its workers yourself;
+- tell the user that setting `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to `2` (in the `env` block of their settings) turns the deputy layer on.
 
 ## Things only the user can provide
 
