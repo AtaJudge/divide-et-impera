@@ -1,38 +1,39 @@
 # divide-et-impera
 
-Büyük işleri parçalara bölen, her parçayı güvenle yapabilecek en ucuz modele dağıtan bir Claude Code skill'i. Kritik işleri yönetici modelin kendisi yazar. Diğer modellerden gelenler doğrulanır ve kullanıcıya raporlanır.
+A Claude Code skill for large tasks. It splits the work into parts and gives each part to the cheapest model that can do it safely. The orchestrating model writes the critical parts itself, verifies what the other models return, and reports to you.
 
-*A Claude Code skill that splits large tasks across Haiku, Sonnet and Opus by criticality. The orchestrator writes the critical work itself, verifies what comes back, and reports.*
+## How it works
 
-## Nasıl çalışır?
-
-| Rol | Model | Ne yapar |
+| Role | Model | Does |
 |---|---|---|
-| Yönetici | Oturumun modeli (Fable / Opus) | Plan, şartname, **kritik işler**, doğrulama, rapor |
-| `dei-deputy` | Opus | İsteğe bağlı yardımcı yönetici: büyük bir iş kolunu yönetir |
-| `dei-builder` | Sonnet | Kapsamlı ama kritik olmayan işler: şartnameye göre kod, test, dokümantasyon |
-| `dei-scout` | Haiku | Basit ve izole işler: araştırma, kaynak toplama, ayrıştırma, küçük scriptler |
+| Orchestrator | The session model (Fable / Opus) | Plans, writes specs, does the **critical work**, verifies, reports |
+| `dei-deputy` | Opus | Optional middle manager that runs one large workstream |
+| `dei-builder` | Sonnet | Substantial but non-critical work: code built to a spec, tests, docs |
+| `dei-scout` | Haiku | Simple, isolated work: research, collecting sources, parsing, small scripts |
 
-### Kritiklik testi
+### Criticality test
 
-Aşağıdaki sorulardan herhangi birinin cevabı "evet" ise iş kritiktir:
-1. **Geri alınamazlık:** Hatayı geri almak zor mu?
-2. **Güvenlik:** Bir güvenlik sınırına dokunuyor mu?
-3. **Etki alanı:** Hata çok kullanıcıyı ya da sistemi etkiler mi?
-4. **Sessiz hata:** Hata fark edilmeden zarar verebilir mi?
-5. **Temel:** Başka işler bunun üzerine mi kurulacak?
-6. **Test edilemezlik:** Bu ortamda otomatik olarak doğrulanamıyor mu?
+A piece of work is critical if any answer is yes:
 
-Emin olunamayan durumda iş kritik sayılır. Projeye özel kritik alanlar `CLAUDE.md` dosyasındaki `Critical in this project` başlığı altına eklenir. Örnek için `examples/CLAUDE.md` dosyasına bak.
+1. **Irreversible:** is a mistake hard to undo?
+2. **Security:** does it touch a trust boundary?
+3. **Blast radius:** would a mistake hit many users or systems?
+4. **Silent failure:** could it be wrong without anyone noticing?
+5. **Foundation:** will other work be built on it?
+6. **Untestable here:** can it not be verified automatically in this environment?
 
-### Oturum modeline göre davranış
-- **Fable:** Kritik işi kendisi yazar. `balanced` modunda şartnameyi Fable yazar, kodu Opus yazar, Fable satır satır inceler.
-- **Opus:** Kritik işi kendisi yazar.
-- **Sonnet / Haiku:** Kritik işi şartnameyle birlikte bir Opus alt ajanına devreder ve sonucu inceler.
+When in doubt, the work counts as critical. To mark extra areas as critical for one project, list them in its `CLAUDE.md` under the heading `Critical in this project`. `examples/CLAUDE.md` shows the format.
 
-## Kurulum
+### Behavior by session model
 
-### Bütün projeler için (kişisel)
+- **Fable** writes critical work itself. In `balanced` mode, Fable writes the spec, Opus writes the implementation, and Fable reviews it line by line.
+- **Opus** writes critical work itself.
+- **Sonnet or Haiku** hands critical work to an Opus subagent along with a spec, then reviews the result.
+
+## Installation
+
+### Personal (all projects)
+
 ```bash
 git clone https://github.com/AtaJudge/divide-et-impera.git
 mkdir -p ~/.claude/skills ~/.claude/agents
@@ -40,18 +41,29 @@ cp -r divide-et-impera/skills/divide-et-impera ~/.claude/skills/
 cp divide-et-impera/agents/*.md ~/.claude/agents/
 ```
 
-### Tek bir proje için
-Aynı dosyaları projenin `.claude/skills/` ve `.claude/agents/` klasörlerine kopyala ve commit'le. Bulut oturumları (claude.ai/code) bu yolu kullanır.
+### Single project
 
-## Kullanım
-```
-/divide-et-impera <görev>
-/divide-et-impera balanced <görev>     # Fable oturumunda maliyet odaklı mod
-```
-Skill yalnızca elle çağrıldığında çalışır (`disable-model-invocation: true`). Böylece istenmeyen alt ajan maliyeti oluşmaz.
+Copy the same files into the project's `.claude/skills/` and `.claude/agents/` folders and commit them. Use this method for cloud sessions (claude.ai/code).
 
-## Bilinen sınırlar ve notlar
-- **Alt ajanlar iç içe en fazla 3 katman olabilir.** Sınır `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` ayarıyla değiştirilebilir. Bu yapı en fazla 2 katman kullanır: yönetici → yardımcı yönetici → işçi.
-- **Model belirtilmeyen alt ajan, kendisini başlatan ajanın modelini kullanır.** Bu yüzden skill yalnızca modeli sabitlenmiş `dei-*` ajanlarını kullanır. Hangi ajanın hangi modelde çalıştığını `/tasks` ile kontrol edebilirsin.
-- **`dei-scout` ajanının Bash erişimi var**, çünkü basit scriptler yazması gerekiyor. Ajan tanımı onu salt okumaya yönlendiriyor, ama bu araç seviyesinde bir zorunluluk değil. Daha sıkı bir kısıt istersen `settings.json` dosyasına `permissions.deny` kuralları ekle.
-- **Fiyatlar** (yazıldığı tarihte, 1M token başına girdi/çıktı): Haiku 5.5 $0.10/$0.50 · Sonnet 5.5 $2/$10 · Opus 5.5 $4/$20 · Fable 5.2 $8/$40.
+## Usage
+
+```
+/divide-et-impera <task>
+/divide-et-impera balanced <task>     # lower-cost mode for Fable sessions
+```
+
+The skill runs only when you invoke it yourself. It sets `disable-model-invocation: true`, so Claude cannot start it on its own and run up subagent costs you didn't ask for.
+
+## Known limits and notes
+
+- **Subagent nesting depth:** subagents can nest up to three layers deep by default; change this with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`. This skill uses at most two layers: orchestrator → deputy → worker.
+- **Model inheritance:** a subagent with no explicit model runs on its parent's model. For that reason the skill only delegates to the `dei-*` agents, whose definitions set the model. Run `/tasks` to see which model each subagent is running on.
+- **`dei-scout` has Bash** so it can run small scripts. Its prompt tells it to stay read-only, but nothing at the tool level enforces this. For a hard limit, add `permissions.deny` rules in settings.
+- **Pricing**, per 1M input/output tokens at the time of writing:
+
+  | Model | Input | Output |
+  |---|---|---|
+  | Haiku 5.5 | $0.10 | $0.50 |
+  | Sonnet 5.5 | $2 | $10 |
+  | Opus 5.5 | $4 | $20 |
+  | Fable 5.2 | $8 | $40 |
