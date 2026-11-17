@@ -7,6 +7,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/version-1.0.0-informational.svg" alt="Version 1.0.0">
+  <a href="https://github.com/AtaJudge/divide-et-impera/actions/workflows/validate.yml"><img src="https://github.com/AtaJudge/divide-et-impera/actions/workflows/validate.yml/badge.svg" alt="Plugin validation status"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin_%2B_skill-orange.svg" alt="Claude Code plugin and skill">
 </p>
 
@@ -201,6 +202,10 @@ The skill tells you, and does not silently fall back to the built-in agents.
 - A subagent with no explicit model inherits its parent's model, which is why the skill only uses its own pinned agents. Check with `/tasks`.
 - `dei-scout` has Bash for small scripts and is told to stay read-only; for a hard limit, add `permissions.deny` rules.
 - The plugin is versioned (1.0.0); updates come through `claude plugin update` or the `/plugin` menu.
+
+## Contributing
+
+Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Report security issues privately; see [SECURITY.md](SECURITY.md).
 
 ## License
 

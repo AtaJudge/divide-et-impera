@@ -1,0 +1,48 @@
+name: Bug report
+description: Something did not work as described in the README.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you ran, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: cc-version
+    attributes:
+      label: Claude Code version
+      description: Output of `claude --version`.
+      placeholder: "2.1.326"
+    validations:
+      required: true
+  - type: dropdown
+    id: orchestrator
+    attributes:
+      label: Session (orchestrator) model
+      options: [Fable, Opus, Sonnet, Haiku, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install method
+      options: [Plugin (/plugin install), Manual copy to ~/.claude, Manual copy to project .claude]
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: [Default, four-eyes]
+  - type: textarea
+    id: agents
+    attributes:
+      label: Subagents and models
+      description: If relevant, the output of `/tasks`, or which agents ran on which model.
+  - type: textarea
+    id: report
+    attributes:
+      label: Orchestrator report
+      description: The final report, with any secrets or private code removed.
