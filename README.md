@@ -59,7 +59,12 @@ When in doubt, it counts as critical. Projects can add their own critical areas 
 
 - **Fable or Opus orchestrator:** writes the critical code itself.
 - **Sonnet or Haiku orchestrator:** hands critical code to an Opus subagent with a full spec, then reviews it.
-- **Fable `balanced`:** Fable writes no code at all. It writes specs and reviews; Opus writes the critical code and makes every fix Fable asks for. Worth it when the critical parts are large; on small critical parts it costs more than the default. On any other model, `balanced` is ignored.
+- **Fable `four-eyes`:** applies the four-eyes principle, also called dual control. The model that writes critical code is never the model that approves it:
+  - Fable writes the spec and reviews the code. It writes no code itself.
+  - Opus writes every line of the critical code, and makes every fix Fable asks for.
+  - The result is an independent check on your most dangerous code. In testing, the implementer even found a security gap in Fable's own spec.
+  - It costs more than the default: about 30% more on the test task. It is a mode for assurance, not for saving money.
+  - It works only with a Fable orchestrator; other models ignore it.
 
 ## Use cases
 
@@ -76,7 +81,7 @@ When in doubt, it counts as critical. Projects can add their own critical areas 
 
 ## Test results
 
-Each scenario ran once, headless; costs are single-run figures.
+Each scenario ran once, headless; costs are single-run figures. The four-eyes runs were recorded while the mode was still called `balanced`; its behavior has not changed since.
 
 **Standard task:** a word-frequency CLI with tests (non-critical), a Python docs lookup (simple), and a function that deletes old files (critical: irreversible, and a security boundary).
 
@@ -84,10 +89,10 @@ Each scenario ran once, headless; costs are single-run figures.
 |---|---|---|---|---|
 | Opus 5.5 orchestrator | Opus itself | Sonnet builder, Haiku scout | 22/22 pass | $0.59 |
 | Fable 5.2 orchestrator | Fable itself | Sonnet builder, Haiku scout | 33/33 pass | $1.28 |
-| Fable 5.2, balanced | Opus (Fable wrote no code) | Sonnet builder, Haiku scout | 33/33 pass | $1.66 |
+| Fable 5.2, four-eyes | Opus wrote it; Fable reviewed it and wrote no code | Sonnet builder, Haiku scout | 33/33 pass | $1.66 |
 | Sonnet 5.5 orchestrator | Escalated to an Opus subagent | Sonnet builder, Haiku scout | 29/29 pass | $0.58 |
 | Haiku 5.5 orchestrator | Escalated to an Opus subagent | Sonnet builder | 30/30 pass | $0.41 |
-| Opus with `balanced` requested | Opus itself; it said balanced is Fable-only | Sonnet builder, Haiku scout | 23/23 pass | $0.57 |
+| Opus with `four-eyes` requested | Opus itself; it said four-eyes is Fable-only | Sonnet builder, Haiku scout | 23/23 pass | $0.57 |
 
 **Other scenarios:**
 
@@ -98,7 +103,7 @@ Each scenario ran once, headless; costs are single-run figures.
 | Project marks the CLI as critical in `CLAUDE.md` | The orchestrator wrote the CLI itself | 25/25 | $0.62 |
 | One-line edit | Started no subagents | – | $0.18 |
 | Large task in two workstreams (7 doc lookups, 5 modules, Fable) | One scout and two builders; no deputy, because it was not worth it | 42/42 | $1.36 |
-| Fable balanced review loop, gap planted in the first spec | Gap caught in review and fixed in a second round by the same Opus worker; Fable wrote no code | 20/20 | $1.24 |
+| Fable four-eyes review loop, with a gap planted in the first spec | Gap caught in review and fixed in a second round by the same Opus worker; Fable wrote no code | 20/20 | $1.24 |
 | Deputy layer with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` | Orchestrator → Opus deputy → two Sonnet builders | 39/39 | $0.84 |
 | Deputy requested where nesting is off | Deputy reported it could not start workers; the orchestrator started five builders itself and told the user how to turn nesting on | 35/35 | $0.90 |
 
@@ -108,7 +113,7 @@ Each scenario ran once, headless; costs are single-run figures.
 - no worker went outside its brief or worked around a denied command;
 - a docs page that could not be loaded was marked unverified, not presented as fact.
 
-> **Highlight: a worker caught a gap in the orchestrator's own spec.** In the balanced run, an Opus worker found a security gap in Fable's spec: a trailing slash let a symlinked directory slip past the check. It reported the gap, and it was fixed in review.
+> **Highlight: four eyes caught what two missed.** In a four-eyes run, the Opus implementer found a security gap in Fable's own spec: a trailing slash let a symlinked directory slip past the check. It reported the gap instead of quietly working around it, and the gap was fixed before the code was accepted. In a second run, a gap planted on purpose was caught in review and fixed by the implementer in a second round.
 
 ## How it compares to other approaches
 
@@ -156,8 +161,8 @@ For a single project, copy into `.claude/skills/` and `.claude/agents/` instead.
 | Install | Command |
 |---|---|
 | Plugin | `/divide-et-impera:divide-et-impera <task>` |
-| Plugin, Fable session, balanced mode | `/divide-et-impera:divide-et-impera balanced <task>` |
-| Manual | `/divide-et-impera <task>` (or `/divide-et-impera balanced <task>`) |
+| Plugin, Fable session, four-eyes mode | `/divide-et-impera:divide-et-impera four-eyes <task>` |
+| Manual | `/divide-et-impera <task>` (or `/divide-et-impera four-eyes <task>`) |
 
 It only runs when you invoke it, on purpose (`disable-model-invocation: true`), so it never starts subagents you did not ask for.
 
@@ -173,7 +178,10 @@ It depends on how much of the task is reading, searching and routine code. Those
 Critical work stays with the orchestrator, or goes to Opus under a Sonnet or Haiku orchestrator. When in doubt, work is treated as critical. Critical claims are checked against primary sources, and corrections are reported to you.
 
 **Which orchestrator model should I use?**
-Fable or Opus write critical code themselves. Sonnet and Haiku escalate it to an Opus subagent and review it. `balanced` mode is for Fable only.
+Fable or Opus write critical code themselves. Sonnet and Haiku escalate it to an Opus subagent and review it. `four-eyes` mode is for Fable only.
+
+**When should I use four-eyes mode?**
+Use it for code where a mistake is expensive and you want separation of duties: auth, payments, migrations, deletion logic, firmware or infrastructure changes. Fable specifies and approves, and Opus implements. Expect it to cost more than the default mode.
 
 **Will it start subagents on its own?**
 No. The skill runs only when you invoke it. A one-line edit in testing started no subagents.

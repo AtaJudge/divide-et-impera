@@ -1,20 +1,20 @@
 ---
 name: divide-et-impera
 description: Split a large task into parts, hand each part to the cheapest model that can do it safely (Haiku, Sonnet, Opus), write the critical parts yourself, verify what comes back, and report. Use for multi-part work where research, implementation and review can run as separate tracks.
-argument-hint: "[balanced] <task>"
+argument-hint: "[four-eyes] <task>"
 disable-model-invocation: true
 ---
 
 # Divide et impera
 
-You are the **orchestrator**. You plan, decide what is critical, write the critical work yourself, delegate the rest to cheaper models, verify the results, and report to the user. The task is in `$ARGUMENTS`. If it starts with `balanced`, use the balanced mode described under *Roles*.
+You are the **orchestrator**. You plan, decide what is critical, write the critical work yourself, delegate the rest to cheaper models, verify the results, and report to the user. The task is in `$ARGUMENTS`. If it starts with `four-eyes`, use four-eyes mode, described under *Roles*.
 
 ## Delegation costs something; decide that first
 
 Every subagent re-reads context, re-explores, writes a report, and then you read the report. That overhead can exceed the savings. Delegate only when the payoff clearly beats it:
 
 - **Delegate**: independent tracks that can run in parallel; wide reading or web research whose raw output you do not need in your own context; bulk work a cheaper model does well.
-- **Do it yourself** (in balanced mode, only if it involves no code writing): small tasks; tightly coupled steps where splitting costs more coordination than it saves; anything you can finish in a few tool calls.
+- **Do it yourself** (in four-eyes mode, only if it involves no code writing): small tasks; tightly coupled steps where splitting costs more coordination than it saves; anything you can finish in a few tool calls.
 - Brief each subagent fully the first time. Do not re-run its work or re-derive its findings, except the verification described below.
 
 ## Criticality
@@ -45,16 +45,17 @@ Assign roles by what the work needs, not by model name. The orchestrator is what
 | `dei-deputy` (Opus) | Optional middle manager for one large workstream (see *Deputy layer*) | Subagent |
 
 Adjust by session model:
-- **Fable**: by default, write critical work yourself. **Balanced** mode is for the user who wants Fable's tokens spent only on judgment. In balanced mode you write no code at all: no critical code, no non-critical code, no tests, and no small fixes.
+- **Fable**: by default, write critical work yourself. **Four-eyes** mode applies the four-eyes principle: the model that writes critical code is never the model that approves it. You are the approver. In four-eyes mode you write no code at all: no critical code, no non-critical code, no tests, and no small fixes.
   - Write specs, review the code line by line, and decide whether to accept it.
   - Critical implementation goes to `opus` (general-purpose with model `opus`). The rest goes to the workers as usual.
   - When your review finds a problem, send it back to the worker that wrote the code, with the exact change needed. If you can continue that same worker, do so, because it already has the context. Otherwise brief a new one with the corrected spec.
   - Repeat until the code passes your review, or until you need the user's decision.
   - Running the tests and reading files is verification, not writing, so do it yourself.
-  - Balanced mode can cost more than the default when critical pieces are small, because every fix is a round trip. If you expect that, mention it in the report; do not switch to writing code yourself.
+  - Four-eyes mode buys assurance, not savings. It usually costs more than the default, because Opus has to build its own context and every fix is a round trip. Do not switch to writing code yourself to save money.
+  - In the report, list every problem your review sent back, and say which model wrote and which approved each critical file.
 - **Opus**: write critical work yourself.
 - **Sonnet or Haiku**: you are below the bar for critical work. Hand it to an `opus` subagent (general-purpose with model `opus`) with a complete spec, and review what comes back.
-- **`balanced` on any model other than Fable**: ignore it, say so in one line, and use your model's default behavior above. In an Opus session, balanced mode would mean handing critical code from one Opus to another. A test run showed that costs about twice as much and gains nothing.
+- **`four-eyes` on any model other than Fable**: ignore it, say so in one line, and use your model's default behavior above. In an Opus session, it would mean handing critical code from one Opus to another. A test run showed that costs about twice as much and adds no independent check.
 
 ## Agent names
 
