@@ -129,7 +129,35 @@ Each scenario ran once, headless; costs are single-run figures. The four-eyes ru
 
 A single strong model is the simplest choice and the right one for small tasks. This plugin is for the large ones.
 
+## Where it works
+
+| Where | Works? | Notes |
+|---|---|---|
+| Claude Code: terminal, IDE extensions, and the **Code** tab of the Claude desktop app | Yes, fully | Tested |
+| **Cowork** in the Claude desktop app | Should work | Cowork loads plugin skills and agents. Not tested yet |
+| Regular **chat** on claude.ai or in the desktop app | Partly | Chat loads the skill but ignores agents, so there are no workers to delegate to. When its agents are missing, the skill says so and does the work itself (tested in Claude Code, not yet in chat) |
+
 ## Installation
+
+### Claude desktop app or claude.ai (no terminal needed)
+
+1. Open **Customize > Plugins** ([claude.ai/customize/plugins](https://claude.ai/customize/plugins)).
+2. Add a marketplace from GitHub: `AtaJudge/divide-et-impera`.
+3. Install **divide-et-impera** from it.
+
+A plugin you install this way is tied to your claude.ai account. It also syncs to Claude Code when you start a session signed in with the same account.
+
+To use it, open the **Code** tab or a **Cowork** task and type `/divide-et-impera:divide-et-impera <task>`.
+
+### Claude Code (terminal)
+
+You need Claude Code itself first. If `claude --version` says "command not found", install it:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+Open a new terminal, run `claude` and sign in. Then continue below.
 
 **Plugin, Claude Code 2.1.275 or later:**
 
