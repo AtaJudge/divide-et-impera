@@ -135,7 +135,7 @@ A single strong model is the simplest choice and the right one for small tasks. 
 |---|---|---|
 | Claude Code: terminal, IDE extensions, and the **Code** tab of the Claude desktop app | Yes, fully | Tested |
 | **Cowork** in the Claude desktop app | Should work | Cowork loads plugin skills and agents. Not tested yet |
-| Regular **chat** on claude.ai or in the desktop app | Partly | Chat loads the skill but ignores agents, so there are no workers to delegate to. When its agents are missing, the skill says so and does the work itself (tested in Claude Code, not yet in chat) |
+| Regular **chat** on claude.ai or in the desktop app | No | Chat ignores agents, so there are no workers to delegate to, and it has no slash commands to start the skill. Use the **Code** tab instead |
 
 ## Installation
 
@@ -147,7 +147,7 @@ A single strong model is the simplest choice and the right one for small tasks. 
 
 A plugin you install this way is tied to your claude.ai account. It also syncs to Claude Code when you start a session signed in with the same account.
 
-To use it, open the **Code** tab or a **Cowork** task and type `/divide-et-impera:divide-et-impera <task>`.
+To use it, open the **Code** tab of the desktop app, pick a folder, and type `/divide-et-impera:divide-et-impera <task>`. It does not run in regular chat.
 
 ### Claude Code (terminal)
 
